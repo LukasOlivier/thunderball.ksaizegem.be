@@ -1,5 +1,23 @@
 <script>
+	import { onMount } from 'svelte';
 	import LandingHeroBackground from './HeroBackground.svelte';
+
+	let websiteInfo = {
+		datum: '...',
+		inschrijvingslink: '#'
+	};
+
+	onMount(async () => {
+		try {
+			const response = await fetch('/api/website');
+			if (response.ok) {
+				websiteInfo = await response.json();
+			}
+			console.log(websiteInfo);
+		} catch (error) {
+			console.error('Failed to fetch website info:', error);
+		}
+	});
 </script>
 
 <section
@@ -12,7 +30,7 @@
 	<div class="z-10 mx-auto w-full max-w-4xl text-center">
 		<div class="mb-4">
 			<span class="rounded-full bg-secondary px-4 py-1.5 text-sm font-medium text-primary">
-				29 maart 2025
+				{websiteInfo?.datum}
 			</span>
 		</div>
 		<h1 class="title mb-6 text-4xl font-bold uppercase text-primary md:text-6xl">
@@ -20,7 +38,7 @@
 			<span class="title mt-2 block text-5xl md:text-7xl">Thunderball</span>
 		</h1>
 		<a
-			href="https://inschrijvingen.ksaizegem.be/thunderball"
+			href={websiteInfo?.inschrijvingslink}
 			target="_blank"
 			class="relative inline-block overflow-hidden rounded-lg bg-primary px-6 py-3 text-lg font-semibold text-secondary transition-all duration-300 ease-in-out hover:text-white hover:brightness-110 active:scale-95"
 		>
