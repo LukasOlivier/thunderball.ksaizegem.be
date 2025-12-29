@@ -22,7 +22,12 @@
 		{#each sponsors as sponsor}
 			<div class="flex items-center justify-center rounded-lg">
 				<a href={sponsor.url} target="_blank" rel="noopener noreferrer">
-					<img src={sponsor.image} alt="sponsor logo" class="max-h-24 object-contain sm:max-h-32" />
+					<img
+						src={sponsor.image}
+						alt={sponsor.name}
+						title={sponsor.name}
+						class="max-h-24 object-contain sm:max-h-32"
+					/>
 				</a>
 			</div>
 		{/each}
