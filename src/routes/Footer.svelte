@@ -1,17 +1,38 @@
 <script>
+	import { onMount } from 'svelte';
 	import { Icon } from 'svelte-icons-pack';
 	import { AiFillFacebook, AiFillInstagram } from 'svelte-icons-pack/ai';
 
-	export let socials = [
-		{
-			icon: AiFillInstagram,
-			link: 'https://www.instagram.com/thunderball_2025//'
-		},
-		{
-			icon: AiFillFacebook,
-			link: 'https://fb.me/e/5Yy8wEytE'
+	let socials = [];
+
+	onMount(async () => {
+		try {
+			const res = await fetch('/api/website');
+			const data = await res.json();
+			socials = [
+				{
+					icon: AiFillInstagram,
+					link: data.instagramUrl || 'https://www.instagram.com/thunderball_2026'
+				},
+				{
+					icon: AiFillFacebook,
+					link: data.facebookUrl || 'https://fb.me/e/5qUhkqeeo'
+				}
+			];
+		} catch (err) {
+			console.error('Error loading social URLs:', err);
+			socials = [
+				{
+					icon: AiFillInstagram,
+					link: 'https://www.instagram.com/thunderball_2026'
+				},
+				{
+					icon: AiFillFacebook,
+					link: 'https://fb.me/e/5qUhkqeeo'
+				}
+			];
 		}
-	];
+	});
 </script>
 
 <footer class="bg-primary py-8 text-secondary">
@@ -33,7 +54,7 @@
 						href={social.link}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="h text-4xl text-secondary"
+						class="h text-4xl text-secondary transition-colors hover:text-secondary/80"
 						aria-label="Social Media"
 					>
 						<Icon src={social.icon} />

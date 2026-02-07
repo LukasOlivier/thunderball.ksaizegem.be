@@ -1,17 +1,18 @@
 <script>
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import Sponsors from '../Sponsors.svelte';
 
-	const CSV_URL =
-		'https://docs.google.com/spreadsheets/d/e/2PACX-1vSLT6Yn35K7oK4_KO0FvJfuERsjoTAXD96tPUd1_apQPievUFJf41rsDQKXNT9PtdaQ1V1dIwpTQ8u8/pub?gid=2030833085&single=true&output=csv';
-	export let pools = {};
-	export let matches = [];
-	export let activePool = null;
+	let pools = {};
+	let matches = [];
+	let activePool = 'Alle';
 	let loading = true;
 	let error = null;
 	let teamStandings = [];
 	let intervalId;
 	let teamPointsMap = {};
+	let autoRefreshEnabled = false;
 
 	// Helper: parse times like "9u" or "9u35" into [hours, minutes]
 	function parseTimeStr(timeStr = '') {
@@ -60,17 +61,19 @@
 				return acc;
 			}, {});
 
-			pools = {};
+			const newPools = {};
 			matches.forEach((match) => {
 				const poolName = match['Pool'];
 				if (!poolName) return;
-				if (!pools[poolName]) pools[poolName] = [];
-				pools[poolName].push(match);
+				if (!newPools[poolName]) newPools[poolName] = [];
+				newPools[poolName].push(match);
 			});
 
-			Object.keys(pools).forEach((poolName) => {
-				pools[poolName].sort(sortByTime);
+			Object.keys(newPools).forEach((poolName) => {
+				newPools[poolName].sort(sortByTime);
 			});
+
+			pools = newPools; // Trigger reactivity
 
 			if (!activePool && Object.keys(pools).length > 0) {
 				const regularPools = Object.keys(pools).filter(
@@ -80,25 +83,50 @@
 					regularPools.length > 0 ? regularPools.sort()[0] : Object.keys(pools).sort()[0];
 			}
 
+			error = null; // Clear error on successful fetch
 			loading = false;
 		} catch (err) {
 			error = err?.message ?? String(err);
 			loading = false;
-			console.error('Error loading CSV:', err);
+			console.error('Error loading sheet:', err);
 		}
 	}
 
 	onMount(() => {
+		// Initialize activePool from URL parameter
+		const poolParam = $page.url.searchParams.get('pool');
+		if (poolParam) {
+			activePool = poolParam;
+		}
+
 		fetchData();
-		intervalId = setInterval(fetchData, 60000); // Fetch every minute
 
 		return () => {
 			if (intervalId) clearInterval(intervalId);
 		};
 	});
 
+	function toggleAutoRefresh() {
+		autoRefreshEnabled = !autoRefreshEnabled;
+
+		// Clear existing interval
+		if (intervalId) {
+			clearInterval(intervalId);
+			intervalId = null;
+		}
+
+		// Start new interval if enabled
+		if (autoRefreshEnabled) {
+			intervalId = setInterval(fetchData, 10000); // 10 seconds
+		}
+	}
+
 	function setActivePool(poolName) {
 		activePool = poolName;
+		// Update URL parameter
+		const url = new URL($page.url);
+		url.searchParams.set('pool', poolName);
+		goto(url.toString(), { replaceState: true, noScroll: true });
 	}
 
 	function hasScore(match) {
@@ -164,15 +192,12 @@
 
 <div class="min-h-screen bg-zinc-50 py-16">
 	<div class="container mx-auto max-w-6xl px-4 py-8">
-		<!-- 
-		
-			  <div class="mb-6 rounded-lg bg-amber-50 p-4 border border-amber-200">
-				<p class="text-amber-700">
-				  Let op: Dit schema kan nog wijzigen tot en met donderdag 27 maart zolang de inschrijvingen open zijn.
-				</p>
-			  </div>
+		<div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+			<p class="text-amber-700">
+				Let op: Dit schema kan nog wijzigen zolang de inschrijvingen open zijn.
+			</p>
+		</div>
 
-			-->
 		<!-- Loading and Error States -->
 		{#if loading}
 			<div class="min-h-[600px]">
@@ -211,7 +236,34 @@
 			</div>
 		{:else}
 			<!-- Pool Selection Tabs -->
-			<h2 class="mb-4 text-xl font-semibold text-zinc-900">Planning</h2>
+			<div class="mb-6 flex items-center justify-between">
+				<h2 class="mb-4 text-xl font-semibold text-zinc-900">Planning</h2>
+				<!-- Auto Refresh Button -->
+				<div class="flex justify-end">
+					<button
+						on:click={toggleAutoRefresh}
+						class="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors {autoRefreshEnabled
+							? 'bg-green-600 text-white hover:bg-green-700'
+							: 'bg-zinc-200 text-zinc-700 hover:bg-zinc-300'}"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-4 w-4"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+							/>
+						</svg>
+						{autoRefreshEnabled ? 'Live updates aan' : 'Live updates uit'}
+					</button>
+				</div>
+			</div>
 
 			<div class="mb-6 overflow-x-auto pb-1">
 				<div class="flex space-x-1 border-b border-zinc-200">

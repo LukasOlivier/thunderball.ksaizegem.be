@@ -33,6 +33,7 @@
 						{currentPath === '/' ? 'bg-secondary text-primary' : 'text-secondary'}"
 					>
 						<Icon src={AiFillHome} />
+						<p class="ml-2 text-sm">Info</p>
 					</a>
 					<a
 						href="/tussenstand"
@@ -41,6 +42,7 @@
 						{currentPath === '/tussenstand' ? 'bg-secondary text-primary' : 'text-secondary'}"
 					>
 						<Icon src={AiFillTrophy} />
+						<p class="ml-2 text-sm">Tussenstand</p>
 					</a>
 				</div>
 
