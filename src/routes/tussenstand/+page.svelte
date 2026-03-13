@@ -326,7 +326,7 @@
 										>
 										<th
 											class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500"
-											>Field</th
+											>Veld</th
 										>
 									</tr>
 								</thead>
@@ -383,7 +383,7 @@
 										>
 										<th
 											class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500"
-											>Field</th
+											>Veld</th
 										>
 									</tr>
 								</thead>
@@ -455,7 +455,7 @@
 										>
 										<th
 											class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500"
-											>Field</th
+											>Veld</th
 										>
 									</tr>
 								</thead>
