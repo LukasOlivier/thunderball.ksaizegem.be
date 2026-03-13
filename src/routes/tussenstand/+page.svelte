@@ -13,6 +13,9 @@
 	let intervalId;
 	let teamPointsMap = {};
 	let autoRefreshEnabled = false;
+	let websiteInfo = {
+		toonTussenstandDisclaimer: false
+	};
 
 	// Helper: parse times like "9u" or "9u35" into [hours, minutes]
 	function parseTimeStr(timeStr = '') {
@@ -92,7 +95,18 @@
 		}
 	}
 
-	onMount(() => {
+	onMount(async () => {
+		try {
+			const response = await fetch('/api/website');
+			if (response.ok) {
+				websiteInfo = await response.json();
+				console.log('Fetched website info:', websiteInfo);
+			}
+			console.log(websiteInfo);
+		} catch (error) {
+			console.error('Failed to fetch website info:', error);
+		}
+
 		// Initialize activePool from URL parameter
 		const poolParam = $page.url.searchParams.get('pool');
 		if (poolParam) {
@@ -192,11 +206,13 @@
 
 <div class="min-h-screen bg-zinc-50 py-16">
 	<div class="container mx-auto max-w-6xl px-4 py-8">
-		<div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
-			<p class="text-amber-700">
-				Let op: Dit schema kan nog wijzigen zolang de inschrijvingen open zijn.
-			</p>
-		</div>
+		{#if websiteInfo?.toonTussenstandDisclaimer === 'TRUE'}
+			<div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+				<p class="text-amber-700">
+					Let op: Dit schema kan nog wijzigen zolang de inschrijvingen open zijn.
+				</p>
+			</div>
+		{/if}
 
 		<!-- Loading and Error States -->
 		{#if loading}
